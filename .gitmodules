@@ -1,0 +1,6 @@
+[submodule "network"]
+	path = network
+	url = git@github.com:mitbailey/network
+[submodule "gpiodev"]
+	path = gpiodev
+	url = git@github.com:space-hauc/gpiodev.git
