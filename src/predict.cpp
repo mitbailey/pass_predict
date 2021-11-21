@@ -21,29 +21,26 @@
 #include "Observer.h"
 #include "SGP4.h"
 #include "meb_debug.h"
-// #include "track.hpp"
-
-#define SERVER_PORT 52040
 
 #define SEC *1000000.0           // nanoseconds to seconds
 #define DEG *(180.0 / 3.1415926) // radians to degrees
 #define GS_LAT 42.655583
 #define GS_LON -71.325433
-#define ELEV 0.061                                             // Lowell ASL + Olney Height; Kilometers for some reason.
+#define GS_ELEV 0.061                                             // Lowell ASL + Olney Height; Kilometers for some reason.
 #define MIN_ELEV 10.0                                          // degrees
-#define ELEV_ADJ 0                                             // degrees adjustment +-
-#define AZIM_ADJ -34                                           // degrees adjustment +-
-#define UTC_TO_EST(hour) (hour > 4 ? hour - 5 : 24 - 5 + hour) // - 5 hours
-#define UTC_TO_EDT(hour) (hour > 3 ? hour - 4 : 24 - 4 + hour) // - 4 hours
 
 // TLE Object SX [https://www.n2yo.com/satellite/?s=49278]
-const char TLE[2][70] = {"1 49278U 98067SX  21323.34441057  .00027466  00000-0  44695-3 0  9995",
-                         "2 49278  51.6405 294.9097 0002575 252.7789 107.2919 15.52448182  5961"};
+const char TLE[2][70] = {"1 49278U 98067SX  21324.50308044  .00028763  00000-0  46659-3 0  9995",
+                         "2 49278  51.6410 289.1483 0002538 256.8289 103.2418 15.52509940  6142"};
+
+// TLE Object SW [https://www.n2yo.com/satellite/?s=49277]
+// const char TLE[2][70] = {"1 49277U 98067SW  21324.32935245  .00013600  00000-0  23801-3 0  9991",
+//                          "2 49277  51.6412 290.2370 0004200 268.3997  91.6512 15.50921294  6090"};
 
 int main(int argc, char *argv[])
 {
     SGP4 *satellite = new SGP4(Tle(TLE[0], TLE[1]));
-    Observer *dish = new Observer(GS_LAT, GS_LON, ELEV);
+    Observer *dish = new Observer(GS_LAT, GS_LON, GS_ELEV);
     DateTime tnow = DateTime::Now(true);
 
     Eci pos_now = satellite->FindPosition(tnow);
@@ -93,12 +90,19 @@ int main(int argc, char *argv[])
     DateTime max_el_time;
     int begin_et = 0;
 
+    TimeSpan FiveHours(5, 0, 0);
+    DateTime tEST = tnow - FiveHours;
+
     if (argc == 3)
     {
-        fprintf(fp, "Report Generated %d.%d.%d %02d:%02d:%02d EST\nData for %d days.\n\n", tnext.Year(), tnext.Month(), tnext.Day(), UTC_TO_EST(max_el_time.Hour()), tnext.Minute(), tnext.Second(), gen_days);
+        fprintf(fp, "Report Generated %d.%d.%d %02d:%02d:%02d EST\nData for %d days.\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), gen_days);
 
         fprintf(fp, "%s\n%s\n\n\n", TLE[0], TLE[1]);
     }
+
+    dbprintlf("It is currently %d.%d.%d %02d:%02d:%02d UTC\n", tnow.Year(), tnow.Month(), tnow.Day(), tnow.Hour(), tnow.Minute(), tnow.Second());
+
+    dbprintlf("It is currently %d.%d.%d %02d:%02d:%02d EST\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second());
 
     for (int i = 0; i < 86400 * gen_days; i++)
     {
@@ -112,10 +116,12 @@ int main(int argc, char *argv[])
             {
                 dbprintlf("== PASS START (Now + %d minutes) ==", i / 60);
                 dbprintlf("Time (EST)             Az (deg)   El (deg)");
+                dbprintlf("------------------------------------------");
                 if (argc == 3)
                 {
                     fprintf(fp, "== PASS START (Now + %d minutes) ==\n", i / 60);
                     fprintf(fp, "Time (EST)             Az (deg)   El (deg)\n");
+                    fprintf(fp, "------------------------------------------\n");
                 }
                 in_pass = true;
                 begin_et = i;
@@ -131,31 +137,36 @@ int main(int argc, char *argv[])
             // Print data for every 60 seconds after the pass begins, and once immediately when the pass begins..
             if ((i - begin_et) % 60 == 0)
             {
-                // dbprintlf("60th Sec");
-                dbprintlf("%d.%d.%d %02d:%02d:%02d    %003.02lf     %003.02lf", tnext.Year(), tnext.Month(), tnext.Day(), UTC_TO_EST(max_el_time.Hour()), tnext.Minute(), tnext.Second(), pos_ahd.azimuth DEG, ahd_el);
+                
+                tEST = tnext - FiveHours;
+                dbprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+
                 if (argc == 3)
                 {
-                    fprintf(fp, "%d.%d.%d %02d:%02d:%02d    %003.02lf     %003.02lf\n", tnext.Year(), tnext.Month(), tnext.Day(), UTC_TO_EST(max_el_time.Hour()), tnext.Minute(), tnext.Second(), pos_ahd.azimuth DEG, ahd_el);
+                    fprintf(fp, "%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
                 }
             }
         }
         else if (in_pass)
         {
             // Make sure to print final state when pass ends.
-            dbprintlf("%d.%d.%d %02d:%02d:%02d    %003.02lf     %003.02lf", tnext.Year(), tnext.Month(), tnext.Day(), UTC_TO_EST(max_el_time.Hour()), tnext.Minute(), tnext.Second(), pos_ahd.azimuth DEG, ahd_el);
+            tEST = tnext - FiveHours;
+            dbprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+
             if (argc == 3)
             {
-                fprintf(fp, "%d.%d.%d %02d:%02d:%02d    %003.02lf     %003.02lf\n", tnext.Year(), tnext.Month(), tnext.Day(), UTC_TO_EST(max_el_time.Hour()), tnext.Minute(), tnext.Second(), pos_ahd.azimuth DEG, ahd_el);
+                fprintf(fp, "%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
             }
 
             dbprintlf("== PASS END ==\n");
             dbprintlf("Section Statistics");
             dbprintlf("    Maximum Elevation:");
-            dbprintlf("%d.%d.%d %02d:%02d:%02d    %003.02lf     %003.02lf", max_el_time.Year(), max_el_time.Month(), max_el_time.Day(), UTC_TO_EST(max_el_time.Hour()), max_el_time.Minute(), max_el_time.Second(), max_el_az, max_el);
+            tEST = max_el_time - FiveHours;
+            dbprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
             printf("\n");
             if (argc == 3)
             {
-                fprintf(fp, "== PASS END ==\n\nSection Statistics\n    Maximum Elevation:\n%d.%d.%d %02d:%02d:%02d    %003.02lf     %003.02lf\n\n", max_el_time.Year(), max_el_time.Month(), max_el_time.Day(), UTC_TO_EST(max_el_time.Hour()), max_el_time.Minute(), max_el_time.Second(), max_el_az, max_el);
+                fprintf(fp, "== PASS END ==\n\nSection Statistics\n    Maximum Elevation:\n%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
             }
 
             in_pass = false;
