@@ -48,40 +48,40 @@ int main(int argc, char *argv[])
     CoordGeodetic current_lla = pos_now.ToGeodetic();
 
     printf("\n");
-    dbprintlf("PASS PREDICTIONS FOR:");
-    dbprintlf("%s", TLE[0]);
-    dbprintlf("%s", TLE[1]);
+    bprintlf("PASS PREDICTIONS FOR:");
+    bprintlf("%s", TLE[0]);
+    bprintlf("%s", TLE[1]);
 
     char filename[256] = {0};
     FILE *fp = NULL;
 
     if (argc > 3 || argc < 2)
     {
-        dbprintlf(FATAL "Invalid command line syntax.");
-        dbprintlf(FATAL "Invocation:");
-        dbprintlf(FATAL "./predict.out <days to predict> output.txt");
+        bprintlf(FATAL "Invalid command line syntax.");
+        bprintlf(FATAL "Invocation:");
+        bprintlf(FATAL "./predict.out <days to predict> output.txt");
     }
     else if (argc == 3)
     {
         strcpy(filename, argv[2]);
-        dbprintlf(YELLOW_FG "PRINTING DATA TO %s", filename);
+        bprintlf(YELLOW_FG "PRINTING DATA TO %s", filename);
         fp = fopen(filename, "w");
         if (fp == NULL)
         {
-            dbprintlf(FATAL "Failed to open %s for write.", filename);
+            bprintlf(FATAL "Failed to open %s for write.", filename);
             return -1;
         }
     }
     else
     {
-        dbprintlf(YELLOW_FG "NOT PRINTING DATA");
+        bprintlf(YELLOW_FG "NOT PRINTING DATA");
     }
 
     int gen_days = atoi(argv[1]);
 
-    dbprintlf(YELLOW_FG "DATA FOR %d DAYS", gen_days);
+    bprintlf(YELLOW_FG "DATA FOR %d DAYS", gen_days);
 
-    dbprintlf("Current Position: %.2f AZ, %.2f EL | %.2f LA, %.2f LN", current_pos.azimuth DEG, current_pos.elevation DEG, current_lla.latitude DEG, current_lla.longitude DEG);
+    bprintlf("Current Position: %.2f AZ, %.2f EL | %.2f LA, %.2f LN", current_pos.azimuth DEG, current_pos.elevation DEG, current_lla.latitude DEG, current_lla.longitude DEG);
 
     DateTime tnext = tnow;
     bool in_pass = false;
@@ -100,9 +100,9 @@ int main(int argc, char *argv[])
         fprintf(fp, "%s\n%s\n\n\n", TLE[0], TLE[1]);
     }
 
-    dbprintlf("It is currently %d.%d.%d %02d:%02d:%02d UTC\n", tnow.Year(), tnow.Month(), tnow.Day(), tnow.Hour(), tnow.Minute(), tnow.Second());
+    bprintlf("It is currently %d.%d.%d %02d:%02d:%02d UTC\n", tnow.Year(), tnow.Month(), tnow.Day(), tnow.Hour(), tnow.Minute(), tnow.Second());
 
-    dbprintlf("It is currently %d.%d.%d %02d:%02d:%02d EST\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second());
+    bprintlf("It is currently %d.%d.%d %02d:%02d:%02d EST\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second());
 
     for (int i = 0; i < 86400 * gen_days; i++)
     {
@@ -114,9 +114,9 @@ int main(int argc, char *argv[])
         {
             if (!in_pass)
             {
-                dbprintlf("== PASS START (Now + %d minutes) ==", i / 60);
-                dbprintlf("Time (EST)             Az (deg)   El (deg)");
-                dbprintlf("------------------------------------------");
+                bprintlf("== PASS START (Now + %d minutes) ==", i / 60);
+                bprintlf("Time (EST)             Az (deg)   El (deg)");
+                bprintlf("------------------------------------------");
                 if (argc == 3)
                 {
                     fprintf(fp, "== PASS START (Now + %d minutes) ==\n", i / 60);
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
             {
                 
                 tEST = tnext - FiveHours;
-                dbprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+                bprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
 
                 if (argc == 3)
                 {
@@ -151,18 +151,18 @@ int main(int argc, char *argv[])
         {
             // Make sure to print final state when pass ends.
             tEST = tnext - FiveHours;
-            dbprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+            bprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
 
             if (argc == 3)
             {
                 fprintf(fp, "%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
             }
 
-            dbprintlf("== PASS END ==\n");
-            dbprintlf("Section Statistics");
-            dbprintlf("    Maximum Elevation:");
+            bprintlf("== PASS END ==\n");
+            bprintlf("Section Statistics");
+            bprintlf("    Maximum Elevation:");
             tEST = max_el_time - FiveHours;
-            dbprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
+            bprintlf("%d.%d.%d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
             printf("\n");
             if (argc == 3)
             {
