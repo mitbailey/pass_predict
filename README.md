@@ -1,6 +1,10 @@
 # Satellite Pass Prediction Software
 This program will display visible pass times for a given satellite.
 
+## Pre-requisites
+Steps 3 and 4 under the 'Prerequisites' section of the following document:  
+https://code.visualstudio.com/docs/cpp/config-mingw
+  
 ## Compilation
 Linux Terminal:  
 Run `make` in the directory.  
