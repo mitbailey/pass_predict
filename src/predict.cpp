@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <termios.h>
+// #include <termios.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
