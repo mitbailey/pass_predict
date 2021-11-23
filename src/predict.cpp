@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-// #include <termios.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -24,12 +23,7 @@
 #include "predict.h"
 
 // TLE Object SX [https://www.n2yo.com/satellite/?s=49278]
-// const char TLE[2][70] = {"1 49278U 98067SX  21325.91916002  .00034883  00000-0  56191-3 0  9992",
-//                          "2 49278  51.6409 282.1060 0002497 259.5267 100.5442 15.52605836  6366"};
-
 // TLE Object SW [https://www.n2yo.com/satellite/?s=49277]
-// const char TLE[2][70] = {"1 49277U 98067SW  21325.87577406  .00016703  00000-0  28990-3 0  9994",
-//                          "2 49277  51.6415 282.5649 0004170 274.5768  85.4745 15.50971000  6333"};
 
 // Invocation:
 // ./predict.out TLE.txt {Days to Predict} output.txt
