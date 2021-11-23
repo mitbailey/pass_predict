@@ -1,12 +1,32 @@
 # Satellite Pass Prediction Software
 This program will display visible pass times for a given satellite.
 
+## Pre-requisites
+Steps 3 and 4 under the 'Prerequisites' section of the following document:  
+https://code.visualstudio.com/docs/cpp/config-mingw
+  
+## Compilation
+Linux Terminal:  
+Run `make` in the directory.  
+  
+Windows:  
+Double click `make.bat`.
+  
 ## Use
-`./predict.out`  
-Will print the next 24 hours of passes to terminal.
+First, ensure your two line element is pasted into an appropriate file. Two .tle files are given as examples.
 
-`./predict.out 7 passes.txt`  
-Will print the next 7 days of passes to terminal and a file called passes.txt.
+Next, run one of the following commands.
 
-## TODO
-- Make satellite TLE user-editable by reading from a file.
+Linux Terminal:  
+`./predict.out {TLE File} {Days to Generate}`  
+Will print to terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
+  
+`./predict.out {TLE File} {Days to Generate} {Output File}`  
+Will print to the file passed as {Output File} and to the terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
+
+Windows Command Prompt:  
+`predict.out {TLE File} {Days to Generate}`  
+Will print to terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
+  
+`predict.out {TLE File} {Days to Generate} {Output File}`  
+Will print to the file passed as {Output File} and to the terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
