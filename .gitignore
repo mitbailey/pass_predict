@@ -51,7 +51,7 @@ DESKTOP.INI
 *.fits
 *.png
 *.dat
-*.txt
+# *.txt
 *.csv
 **/*.csv
 
