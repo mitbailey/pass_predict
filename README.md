@@ -1,6 +1,13 @@
 # Satellite Pass Prediction Software
 This program will display visible pass times for a given satellite.
 
+## Compilation
+Linux Terminal:  
+Run `make` in the directory.  
+  
+Windows:  
+Double click `make.bat`.
+  
 ## Use
 First, ensure your two line element is pasted into an appropriate file. Two .tle files are given as examples.
 
