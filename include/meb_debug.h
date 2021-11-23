@@ -43,7 +43,7 @@
 #define TERMINATOR "\x1b[0m"
 #ifndef MEB_COLORS
 #define MEB_COLORS
-#define RESET_ALL "\x1b[0m"
+#define RESET_ALL TERMINATOR
 #define RED_FG "\x1b[91m"
 #define GREEN_FG "\x1b[92m"
 #define YELLOW_FG "\x1b[33m"
@@ -83,7 +83,7 @@
 #ifndef bprintf
 #define bprintf(str, ...)                     \
     {                                         \
-        printf(str "\x1b[0m", ##__VA_ARGS__); \
+        printf(str TERMINATOR, ##__VA_ARGS__); \
         fflush(stdout);                       \
     }
 #endif // bprintf
@@ -91,7 +91,7 @@
 #ifndef bprintlf
 #define bprintlf(str, ...)                       \
     {                                            \
-        printf(str "\x1b[0m \n", ##__VA_ARGS__); \
+        printf(str TERMINATOR " \n", ##__VA_ARGS__); \
         fflush(stdout);                          \
     }
 #endif // bprintlf
@@ -118,7 +118,7 @@ static char *get_time_now()
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     snprintf(buf, sizeof(buf), GREEN_FG "[" YELLOW_FG "%02d:%02d:%02d" GREEN_FG "] "
-                                        "\x1b[0m",
+                                        TERMINATOR,
              tm.tm_hour, tm.tm_min, tm.tm_sec);
     return buf;
 }
@@ -126,7 +126,7 @@ static char *get_time_now()
 #ifndef tprintf
 #define tprintf(str, ...)                                          \
     {                                                              \
-        printf("%s" str "\x1b[0m", get_time_now(), ##__VA_ARGS__); \
+        printf("%s" str TERMINATOR, get_time_now(), ##__VA_ARGS__); \
         fflush(stdout);                                            \
     }
 #endif
@@ -134,7 +134,7 @@ static char *get_time_now()
 #ifndef tprintlf
 #define tprintlf(str, ...)                                           \
     {                                                                \
-        printf("%s" str "\x1b[0m\n", get_time_now(), ##__VA_ARGS__); \
+        printf("%s" str TERMINATOR "\n", get_time_now(), ##__VA_ARGS__); \
         fflush(stdout);                                              \
     }
 #endif
