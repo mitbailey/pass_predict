@@ -1,6 +1,17 @@
 # Satellite Pass Prediction Software
 This program will display visible pass times for a given satellite.
 
+No Args
+- Prompt the user to input a NORADID or filename
+One Arg
+- Check if user entered NORADID or filename
+- NORADID
+    - Try to grab TLE from online
+        - Can't connect, fail.
+- Filename
+    - Try to grab TLE from file
+        - No or invalid TLE, fail.
+
 ## Pre-requisites
 Steps 3 and 4 under the 'Prerequisites' section of the following document:  
 https://code.visualstudio.com/docs/cpp/config-mingw

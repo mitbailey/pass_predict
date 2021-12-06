@@ -9,7 +9,7 @@ TARGET = predict.out
 
 all: $(COBJS) $(CPPOBJS)
 	$(CXX) $(EDCXXFLAGS) $(COBJS) $(CPPOBJS) -o $(TARGET) $(EDLDFLAGS)
-	sudo ./$(TARGET) ObjectSX.txt 1
+	# sudo ./$(TARGET) ObjectSX.txt 1
 
 %.o: %.cpp
 	$(CXX) $(EDCXXFLAGS) -o $@ -c $<
