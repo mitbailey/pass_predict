@@ -64,3 +64,6 @@ DESKTOP.INI
 # Doxygen #
 ##########################
 docs/latex/*
+
+*.txt
+**/*.txt
