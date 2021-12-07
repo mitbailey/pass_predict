@@ -1,7 +1,7 @@
 /**
  * @file predict.cpp
  * @author Mit Bailey (mitbailey99@gmail.com)
- * @brief
+ * @brief Displays visible pass times for a given satellite.
  * @version See Git tags for version information.
  * @date 2021.11.19
  *
