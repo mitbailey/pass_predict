@@ -22,13 +22,21 @@
 #include "meb_print.h"
 #include "predict.h"
 
+#define WEBSTREAM_URL "http://celestrak.com/NORAD/elements/stations.txt"
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
+#include <windows.h>
+#include <urlmon.h>
+
+#define WEBSTREAM_TMP "webstream.tmp"
+
+#endif
+
+// TODO: Update README.md file.
+
 // TLE Object SX [https://www.n2yo.com/satellite/?s=49278]
 // TLE Object SW [https://www.n2yo.com/satellite/?s=49277]
-
-// Invocation:
-// ./predict.out TLE.txt {Days to Predict} output.txt
-// ./predict.out {Input TLE File} {Days to Predict} {Output Data File}
-// Arguments 1 and 2 are required, argument 3 is optional.
 
 /*
 Usage:
@@ -53,7 +61,9 @@ int main(int argc, char *argv[])
     {
         // ./predict.out
         // Ask the user for input.
+
         // TODO: Make last two optional
+        
         bprintf("NORAD ID or TLE input filename: ");
         scanf("%s", identifier);
 
@@ -68,6 +78,8 @@ int main(int argc, char *argv[])
     {
         // ./predict.out {Input File}
         // ./predict.out {NORAD ID}
+
+        // TODO: Add usages printout and exit() if user uses -help.
 
         strcpy(identifier, argv[1]);
     }
@@ -94,10 +106,22 @@ int main(int argc, char *argv[])
     }
     else
     {
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
+        dbprintlf(FATAL "Invalid usage.");
+        dbprintlf("Usages (REQuired, OPTional):");
+        dbprintlf(RED_FG "./predict.out");
+        dbprintlf(RED_FG "./predict.out {REQ: Five-Digit NORAD ID or Input File} {OPT: Output File} {OPT: Days to Predict}");
+
+#else // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
         dbprintlf(FATAL "Invalid usage.");
         dbprintlf("Usages (" RED_FG "required" TERMINATOR ", " BLUE_FG "optional" TERMINATOR "):");
         dbprintlf(RED_FG "./predict.out");
-        dbprintlf(RED_FG "./predict.out {Five-Digit NORAD ID or Input File} {Output File}" TERMINATOR " " BLUE_FG "{Days to Predict}");
+        dbprintlf(RED_FG "./predict.out {Five-Digit NORAD ID or Input File} " TERMINATOR BLUE_FG "{Output File} {Days to Predict}");
+
+#endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
 
         return -1;
     }
@@ -127,22 +151,36 @@ int main(int argc, char *argv[])
     if (use_norad_id)
     {
         // Update from internet.
-        char cmd[512] = {0};
-        const char url[] = "http://celestrak.com/NORAD/elements/stations.txt";
 
         FILE *pp = NULL;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 
-        // TODO: Make the update functionality work on Windows.
-        dbprintlf(FATAL "Online TLE updating is not currently supported on Windows.");
-        return -2000;
+// #include <windows.h>
+// #include <urlmon.h>
+// #pragma comment(lib, "urlmon.lib")
+
+        LPCTSTR wurl = (LPCTSTR)WEBSTREAM_URL;
+        LPCTSTR wdest = (LPCTSTR)WEBSTREAM_TMP;
+        char cdest[] = WEBSTREAM_TMP;
+        if (S_OK == URLDownloadToFile(NULL, wurl, wdest, 0, NULL))
+        {
+            dbprintlf("Windows reports file successfully downloaded.");
+        }
+        else
+        {
+            dbprintlf("Fail");
+        }
+
+        pp = fopen(cdest, "r");
 
 #else // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 
         dbprintlf("Non-Windows OS detected, updating TLE from internet.");
 
-        snprintf(cmd, sizeof(cmd), "wget -q -O- %s", url);
+        char cmd[512] = {0};
+
+        snprintf(cmd, sizeof(cmd), "wget -q -O- %s", WEBSTREAM_URL);
         pp = popen(cmd, "r");
 
 #endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -177,7 +215,13 @@ int main(int argc, char *argv[])
             if (l1_updated && l2_updated)
                 break;
         }
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+        fclose(pp);
+#else
         pclose(pp);
+#endif
+
         if (l1_updated && l2_updated)
         {
             tprintlf(GREEN_FG "Obtained updated TLE for %s.", identifier);
@@ -231,8 +275,6 @@ int main(int argc, char *argv[])
     CoordTopocentric current_pos = dish->GetLookAngle(pos_now);
     CoordGeodetic current_lla = pos_now.ToGeodetic();
 
-    // int days_to_predict = atoi(argv[2]);
-
     bprintlf(YELLOW_FG "DATA FOR %d DAYS", days_to_predict);
 
     bprintlf("Current Position: %.2f AZ, %.2f EL | %.2f LA, %.2f LN", current_pos.azimuth DEG, current_pos.elevation DEG, current_lla.latitude DEG, current_lla.longitude DEG);
@@ -246,7 +288,6 @@ int main(int argc, char *argv[])
     TimeSpan FiveHours(5, 0, 0);
     DateTime tEST = tnow - FiveHours;
 
-    // TODO: How to determine whether it is file-outputted or just on screen?
     if (use_out_file)
     {
         fprintf(fp_out, "Report Generated %04d.%02d.%02d %02d:%02d:%02d EST\nData for %d days.\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), days_to_predict);
@@ -332,6 +373,10 @@ int main(int argc, char *argv[])
     {
         fclose(fp_out);
     }
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    remove(WEBSTREAM_TMP);
+#endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 
     return 0;
 }
