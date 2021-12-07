@@ -45,34 +45,51 @@ int main(int argc, char *argv[])
 
     char identifier[256] = {0}; // NORAD ID or TLE filename.
     char fname_out[256] = {0};
-    int days_to_predict = 2;
-    bool use_norad_id = true;
+    int days_to_predict = 2;   // Predict two days (48 hours) by default.
+    bool use_norad_id = true;  // Assume the use of a NORAD ID by default.
+    bool use_out_file = false; // No out-file printing by default.
 
     if (argc == 1)
     {
+        // ./predict.out
         // Ask the user for input.
+        // TODO: Make last two optional
         bprintf("NORAD ID or TLE input filename: ");
         scanf("%s", identifier);
 
         bprintf("Output filename: ");
         scanf("%s", fname_out);
+        use_out_file = true;
 
         bprintf("Days to predict: ");
         scanf("%d", &days_to_predict);
     }
+    else if (argc == 2)
+    {
+        // ./predict.out {Input File}
+        // ./predict.out {NORAD ID}
+
+        strcpy(identifier, argv[1]);
+    }
     else if (argc == 3)
     {
+        // ./predict.out {Input File} {Output File}
+        // ./predict.out {NORAD ID} {Output File}
         // Default prediction time.
 
         strcpy(identifier, argv[1]);
         strcpy(fname_out, argv[2]);
+        use_out_file = true;
     }
     else if (argc == 4)
     {
+        // ./predict.out {Input File} {Output File} {Days to Predict}
+        // ./predict.out {NORAD ID} {Output File} {Days to Predict}
         // Given prediction time.
 
         strcpy(identifier, argv[1]);
         strcpy(fname_out, argv[2]);
+        use_out_file = true;
         days_to_predict = atoi(argv[3]);
     }
     else
@@ -107,14 +124,29 @@ int main(int argc, char *argv[])
 
     // If filename is given, continue on as before.
     // If NORAD ID is given, fetch the TLE from the internet.
-    // IF LINUX
     if (use_norad_id)
     {
         // Update from internet.
         char cmd[512] = {0};
         const char url[] = "http://celestrak.com/NORAD/elements/stations.txt";
+
+        FILE *pp = NULL;
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
+        // TODO: Make the update functionality work on Windows.
+        dbprintlf(FATAL "Online TLE updating is not currently supported on Windows.");
+        return -2000;
+
+#else // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
+        dbprintlf("Non-Windows OS detected, updating TLE from internet.");
+
         snprintf(cmd, sizeof(cmd), "wget -q -O- %s", url);
-        FILE *pp = popen(cmd, "r");
+        pp = popen(cmd, "r");
+
+#endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+
         if (pp == NULL)
         {
             dbprintlf(RED_FG "Could not open pipe to obtain online TLE data.");
@@ -132,7 +164,6 @@ int main(int argc, char *argv[])
 
         while (fgets(buf, sizeof(buf), pp))
         {
-            dbprintlf("%s", buf);
             if (strstr(buf, search_str1) != NULL)
             {
                 strcpy(TLE[0], buf);
@@ -152,19 +183,14 @@ int main(int argc, char *argv[])
             tprintlf(GREEN_FG "Obtained updated TLE for %s.", identifier);
             TLE[0][69] = '\0';
             TLE[1][69] = '\0';
-            tprintlf("%s\n%s", TLE[0], TLE[1]);
-            // l1[69] = '\0';
-            // l2[69] = '\0';
-            // Update(l1, l2);
+            tprintlf("%s", TLE[0]);
+            tprintlf("%s", TLE[1]);
         }
         else
         {
             tprintlf(RED_FG "Failed to update TLE for %s.", identifier);
             return -3;
         }
-
-        // IF WINDOWS
-        // TODO: Make the update functionality work on Windows.
     }
     else
     {
@@ -181,45 +207,16 @@ int main(int argc, char *argv[])
         fclose(fp_tle);
     }
 
-    // This code commented due to deprecation and has been superceded.
-    // if (argc == 3)
-    // {
-    //     // Predict with only console output.
-    //     bprintlf(YELLOW_FG "NOT PRINTING DATA TO FILE");
-    //     strcpy(fname_tle, argv[1]);
-    // }
-    // else if (argc == 4)
-    // {
-    //     // Predict with an output file generated.
-    //     fout = true;
-    //     strcpy(fname_tle, argv[1]);
-    //     strcpy(fname_out, argv[3]);
-    //     bprintlf(YELLOW_FG "PRINTING DATA TO %s", fname_out);
-    //     fp_out = fopen(fname_out, "w");
-    //     if (fp_out == NULL)
-    //     {
-    //         dbprintlf(FATAL "Failed to open %s for write.", fname_out);
-    //         return -1;
-    //     }
-    // }
-    // else
-    // {
-    //     // Invalid number of command line arguments entered.
-    //     bprintlf(FATAL "Invalid syntax. Valid invocations:");
-    //     bprintlf(FATAL "./predict.out {Input TLE File} {Days to Predict}");
-    //     bprintlf(FATAL "./predict.out {Input TLE File} {Days to Predict} {Output Data File}");
-    //     return -1;
-    // }
-
     // Open the output file.
-    fp_out = fopen(fname_out, "w");
-    if (fp_out == NULL)
+    if (use_out_file)
     {
-        dbprintlf(FATAL "Failed to open %s for write.", fname_out);
-        return -5;
+        fp_out = fopen(fname_out, "w");
+        if (fp_out == NULL)
+        {
+            dbprintlf(FATAL "Failed to open %s for write.", fname_out);
+            return -5;
+        }
     }
-
-    // TODO: From here down should be re-checked for compatability with the new functionality.
 
     bprintlf();
     bprintlf("PASS PREDICTIONS FOR:");
@@ -250,7 +247,7 @@ int main(int argc, char *argv[])
     DateTime tEST = tnow - FiveHours;
 
     // TODO: How to determine whether it is file-outputted or just on screen?
-    // if (fout)
+    if (use_out_file)
     {
         fprintf(fp_out, "Report Generated %04d.%02d.%02d %02d:%02d:%02d EST\nData for %d days.\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), days_to_predict);
 
@@ -275,7 +272,7 @@ int main(int argc, char *argv[])
                 bprintlf("== SATELLITE PASS (Now + %d minutes) ==", i / 60);
                 bprintlf("Time (EST)             Az (deg)   El (deg)");
                 bprintlf("------------------------------------------");
-                // if (fout)
+                if (use_out_file)
                 {
                     fprintf(fp_out, "== SATELLITE PASS (Now + %d minutes) ==\n", i / 60);
                     fprintf(fp_out, "Time (EST)             Az (deg)   El (deg)\n");
@@ -299,7 +296,7 @@ int main(int argc, char *argv[])
                 tEST = tnext - FiveHours;
                 bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
 
-                // if (fout)
+                if (use_out_file)
                 {
                     fprintf(fp_out, "%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
                 }
@@ -311,7 +308,7 @@ int main(int argc, char *argv[])
             tEST = tnext - FiveHours;
             bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
 
-            // if (fout)
+            if (use_out_file)
             {
                 fprintf(fp_out, "%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
             }
@@ -321,7 +318,7 @@ int main(int argc, char *argv[])
             tEST = max_el_time - FiveHours;
             bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
             printf("\n\n");
-            // if (fout)
+            if (use_out_file)
             {
                 fprintf(fp_out, "\nPass Statistics\n    Maximum Elevation:\n%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
             }
@@ -331,7 +328,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // if (fout)
+    if (use_out_file)
     {
         fclose(fp_out);
     }
