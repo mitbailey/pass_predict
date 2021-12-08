@@ -15,10 +15,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include "CoordTopocentric.h"
-#include "DateTime.h"
-#include "Observer.h"
-#include "SGP4.h"
+#include "CoordTopocentric.hpp"
+#include "DateTime.hpp"
+#include "Observer.hpp"
+#include "SGP4.hpp"
 #include "meb_print.h"
 #include "predict.hpp"
 
