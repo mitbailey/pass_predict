@@ -1,5 +1,5 @@
 /**
- * @file predict.hpp
+ * @file predict.h
  * @author Mit Bailey (mitbailey99@gmail.com)
  * @brief 
  * @version See Git tags for version information.
@@ -9,8 +9,8 @@
  * 
  */
 
-#ifndef PREDICT_HPP
-#define PREDICT_HPP
+#ifndef PREDICT_H
+#define PREDICT_H
 
 #define SEC *1000000.0           // nanoseconds to seconds
 #define DEG *(180.0 / 3.1415926) // radians to degrees
@@ -20,4 +20,4 @@
 #define MIN_ELEV 10.0                                          // degrees
 #define TLE_LEN 70
 
-#endif // PREDICT_HPP
+#endif // PREDICT_H

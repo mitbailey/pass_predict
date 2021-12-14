@@ -20,7 +20,7 @@
 #include "Observer.hpp"
 #include "SGP4.hpp"
 #include "meb_print.h"
-#include "predict.hpp"
+#include "predict.h"
 
 #define WEBSTREAM_URL "http://celestrak.com/NORAD/elements/stations.txt"
 

@@ -22,9 +22,11 @@
 #include "SatelliteException.hpp"
 #include "DecayedException.hpp"
 
-#include <cmath>
-#include <iomanip>
-#include <cstring>
+// #include <cmath>
+// #include <iomanip>
+// #include <cstring>
+#include <math.h>
+#include <string.h>
 
 void SGP4::SetTle(const Tle& tle)
 {
@@ -1340,9 +1342,9 @@ void SGP4::Reset()
 {
     use_simple_model_ = false;
     use_deep_space_ = false;
-
-    std::memset(&common_consts_, 0, sizeof(common_consts_));
-    std::memset(&nearspace_consts_, 0, sizeof(nearspace_consts_));
-    std::memset(&deepspace_consts_, 0, sizeof(deepspace_consts_));
-    std::memset(&integrator_params_, 0, sizeof(integrator_params_));
+    
+    memset(&common_consts_, 0, sizeof(common_consts_));
+    memset(&nearspace_consts_, 0, sizeof(nearspace_consts_));
+    memset(&deepspace_consts_, 0, sizeof(deepspace_consts_));
+    memset(&integrator_params_, 0, sizeof(integrator_params_));
 }
