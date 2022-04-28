@@ -1,8 +1,8 @@
 @ECHO OFF
 REM Variables relevant to the compilation of the program.
 SET CXX=g++
-SET CPPOBJS=src/predict.cpp SGP4/libsgp4/CoordGeodetic.cc SGP4/libsgp4/CoordTopocentric.cc SGP4/libsgp4/DateTime.cc SGP4/libsgp4/DecayedException.cc SGP4/libsgp4/Eci.cc SGP4/libsgp4/Globals.cc SGP4/libsgp4/Observer.cc SGP4/libsgp4/OrbitalElements.cc SGP4/libsgp4/SatelliteException.cc SGP4/libsgp4/SGP4.cc SGP4/libsgp4/SolarPosition.cc SGP4/libsgp4/TimeSpan.cc SGP4/libsgp4/Tle.cc SGP4/libsgp4/TleException.cc SGP4/libsgp4/Util.cc SGP4/libsgp4/Vector.cc
-SET EDCXXFLAGS=-I ./ -I ./include/ -I ./SGP4/libsgp4/ -I ./SGP4/passpredict/ -I ./SGP4/sattrack/ -Wall
+SET CPPOBJS=src/predict.cpp SGP4/src/CoordGeodetic.cpp SGP4/src/CoordTopocentric.cpp SGP4/src/DateTime.cpp SGP4/src/DecayedException.cpp SGP4/src/Eci.cpp SGP4/src/Globals.cpp SGP4/src/Observer.cpp SGP4/src/OrbitalElements.cpp SGP4/src/SatelliteException.cpp SGP4/src/SGP4.cpp SGP4/src/SolarPosition.cpp SGP4/src/TimeSpan.cpp SGP4/src/Tle.cpp SGP4/src/TleException.cpp SGP4/src/Util.cpp SGP4/src/Vector.cpp
+SET EDCXXFLAGS=-I ./ -I ./include/ -I ./SGP4/src/ -I ./SGP4/include/ -I ./SGP4/passpredict/ -I ./SGP4/sattrack/ -Wall
 SET EDLDFLAGS=-lurlmon
 SET TARGET=predict.exe
 
