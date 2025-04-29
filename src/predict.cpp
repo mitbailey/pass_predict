@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
     int begin_et = 0;
 
     TimeSpan AdjustHours(timezone_adjust, 0, 0);
-    DateTime tADJ = tnow - AdjustHours;
+    DateTime tADJ = tnow + AdjustHours;
 
     // TimeSpan FiveHours(5, 0, 0);
     // DateTime tEST = tnow - FiveHours;
