@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
     FILE *fp_tle = NULL;
     FILE *fp_out = NULL;
 
+    int timezone_adjust = 0 // Assume UTC+0 by default.
+        , norad_id = 0; // Assume no NORAD ID by default.
     char identifier[256] = {0}; // NORAD ID or TLE filename.
     char fname_out[256] = {0};
     int days_to_predict = 2;   // Predict two days (48 hours) by default.
@@ -80,6 +82,9 @@ int main(int argc, char *argv[])
         bprintf("NORAD ID or TLE input filename: ");
         scanf("%s", identifier);
 
+        bprintf("Integer, where UTC+Int is the output timezone: ");
+        scanf("%d", &timezone_adjust);
+
         bprintf("Output filename: ");
         scanf("%s", fname_out);
         use_out_file = true;
@@ -87,7 +92,7 @@ int main(int argc, char *argv[])
         bprintf("Days to predict: ");
         scanf("%d", &days_to_predict);
     }
-    else if (argc == 2)
+    else if (argc == 3)
     {
         // ./predict.out {Input File}
         // ./predict.out {NORAD ID}
@@ -95,27 +100,30 @@ int main(int argc, char *argv[])
         // TODO: Add usages printout and exit() if user uses -help.
 
         strcpy(identifier, argv[1]);
+        timezone_adjust = atoi(argv[2]);
     }
-    else if (argc == 3)
+    else if (argc == 4)
     {
         // ./predict.out {Input File} {Output File}
         // ./predict.out {NORAD ID} {Output File}
         // Default prediction time.
 
         strcpy(identifier, argv[1]);
-        strcpy(fname_out, argv[2]);
+        timezone_adjust = atoi(argv[2]);
+        strcpy(fname_out, argv[3]);
         use_out_file = true;
     }
-    else if (argc == 4)
+    else if (argc == 5)
     {
         // ./predict.out {Input File} {Output File} {Days to Predict}
         // ./predict.out {NORAD ID} {Output File} {Days to Predict}
         // Given prediction time.
 
         strcpy(identifier, argv[1]);
-        strcpy(fname_out, argv[2]);
+        timezone_adjust = atoi(argv[2]);
+        strcpy(fname_out, argv[3]);
         use_out_file = true;
-        days_to_predict = atoi(argv[3]);
+        days_to_predict = atoi(argv[4]);
     }
     else
     {
@@ -124,7 +132,7 @@ int main(int argc, char *argv[])
         dbprintlf(FATAL "Invalid usage.");
         dbprintlf("Usages (REQuired, OPTional):");
         dbprintlf(RED_FG "./predict.out");
-        dbprintlf(RED_FG "./predict.out {REQ: Five-Digit NORAD ID or Input File} {OPT: Output File} {OPT: Days to Predict}");
+        dbprintlf(RED_FG "./predict.out {REQ: Five-Digit NORAD ID or Input File} {REQ: Int, where UTC+Int is the output timezone} {OPT: Output File} {OPT: Days to Predict}");
 
 #else // defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 
@@ -298,12 +306,16 @@ int main(int argc, char *argv[])
     DateTime max_el_time;
     int begin_et = 0;
 
-    TimeSpan FiveHours(5, 0, 0);
-    DateTime tEST = tnow - FiveHours;
+    TimeSpan AdjustHours(timezone_adjust, 0, 0);
+    DateTime tADJ = tnow + AdjustHours;
+
+    // TimeSpan FiveHours(5, 0, 0);
+    // DateTime tEST = tnow - FiveHours;
 
     if (use_out_file)
     {
-        fprintf(fp_out, "Report Generated %04d.%02d.%02d %02d:%02d:%02d EST\nData for %d days.\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), days_to_predict);
+        // fprintf(fp_out, "Report Generated %04d.%02d.%02d %02d:%02d:%02d EST\nData for %d days.\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), days_to_predict);
+        fprintf(fp_out, "Report Generated %04d.%02d.%02d %02d:%02d:%02d UTC%+d\nData for %d days.\n\n", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), timezone_adjust, days_to_predict);
 
         fprintf(fp_out, "%s\n%s\n", TLE[0], TLE[1]);
         fprintf(fp_out, "======================================================================\n\n");
@@ -311,7 +323,7 @@ int main(int argc, char *argv[])
 
     bprintlf("It is currently %04d.%02d.%02d %02d:%02d:%02d UTC\n", tnow.Year(), tnow.Month(), tnow.Day(), tnow.Hour(), tnow.Minute(), tnow.Second());
 
-    bprintlf("It is currently %04d.%02d.%02d %02d:%02d:%02d EST\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second());
+    bprintlf("It is currently %04d.%02d.%02d %02d:%02d:%02d UTC%+d\n", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), timezone_adjust);
 
     for (int i = 0; i < 86400 * days_to_predict; i++)
     {
@@ -324,12 +336,12 @@ int main(int argc, char *argv[])
             if (!in_pass)
             {
                 bprintlf("== SATELLITE PASS (Now + %d minutes) ==", i / 60);
-                bprintlf("Time (EST)             Az (deg)   El (deg)");
+                bprintlf("Time (UTC%+d)           Az (deg)   El (deg)", timezone_adjust);
                 bprintlf("------------------------------------------");
                 if (use_out_file)
                 {
                     fprintf(fp_out, "== SATELLITE PASS (Now + %d minutes) ==\n", i / 60);
-                    fprintf(fp_out, "Time (EST)             Az (deg)   El (deg)\n");
+                    fprintf(fp_out, "Time (UTC%+d)           Az (deg)   El (deg)\n", timezone_adjust);
                     fprintf(fp_out, "------------------------------------------\n");
                 }
                 in_pass = true;
@@ -347,34 +359,37 @@ int main(int argc, char *argv[])
             if ((i - begin_et) % 60 == 0)
             {
 
-                tEST = tnext - FiveHours;
-                bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+                // tEST = tnext - FiveHours;
+                tADJ = tnext - AdjustHours;
+                bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), pos_ahd.azimuth DEG, ahd_el);
 
                 if (use_out_file)
                 {
-                    fprintf(fp_out, "%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+                    fprintf(fp_out, "%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), pos_ahd.azimuth DEG, ahd_el);
                 }
             }
         }
         else if (in_pass)
         {
             // Make sure to print final state when pass ends.
-            tEST = tnext - FiveHours;
-            bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+            // tEST = tnext - FiveHours;
+            tADJ = tnext - AdjustHours;
+            bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), pos_ahd.azimuth DEG, ahd_el);
 
             if (use_out_file)
             {
-                fprintf(fp_out, "%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), pos_ahd.azimuth DEG, ahd_el);
+                fprintf(fp_out, "%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), pos_ahd.azimuth DEG, ahd_el);
             }
 
             bprintlf("Pass Statistics");
             bprintlf("    Maximum Elevation:");
-            tEST = max_el_time - FiveHours;
-            bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
+            // tEST = max_el_time - FiveHours;
+            tADJ = max_el_time - AdjustHours;
+            bprintlf("%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), max_el_az, max_el);
             printf("\n\n");
             if (use_out_file)
             {
-                fprintf(fp_out, "\nPass Statistics\n    Maximum Elevation:\n%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n\n\n", tEST.Year(), tEST.Month(), tEST.Day(), tEST.Hour(), tEST.Minute(), tEST.Second(), max_el_az, max_el);
+                fprintf(fp_out, "\nPass Statistics\n    Maximum Elevation:\n%04d.%02d.%02d %02d:%02d:%02d    %6.02lf     %6.02lf\n\n\n", tADJ.Year(), tADJ.Month(), tADJ.Day(), tADJ.Hour(), tADJ.Minute(), tADJ.Second(), max_el_az, max_el);
             }
 
             in_pass = false;
