@@ -15,28 +15,27 @@ Double click `make.bat`.
   
 # Use
 
-Valid usages (REQuired, OPTional):  
+Valid command line usage (Required <>, Optional []):  
 1. `./predict.out`  
-2. `./predict.out {Five-Digit NORAD ID or Input File}`  
-3. `./predict.out {Five-Digit NORAD ID or Input File} {Output File}`  
-4. `./predict.out {Five-Digit NORAD ID or Input File} {Output File} {Days to Predict}`  
+2. `./predict.out <Five-Digit NORAD ID or Input File> <Timezone Offset> [Output File] [Days to Predict]`  
 
-First, ensure your two line element is pasted into an appropriate file. Two .tle files are given as examples.
 
+**Specically for using a file:**   
+First, ensure your two line element is pasted into an appropriate file. Two .tle files are given as examples.   
 Next, run one of the following commands.
 
-Linux Terminal:  
-`./predict.out {TLE File} {Days to Generate}`  
+*Linux Terminal:*  
+`./predict.out <TLE File> <Timezone Offset> <Days to Generate>`  
 Will print to terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
   
-`./predict.out {TLE File} {Days to Generate} {Output File}`  
+`./predict.out <TLE File> <Timezone Offset> <Days to Generate> [Output File]`  
 Will print to the file passed as {Output File} and to the terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
 
-Windows Command Prompt:  
-`predict.out {TLE File} {Days to Generate}`  
+*Windows Command Prompt:*  
+`predict.out <TLE File> <Timezone Offset> <Days to Generate>`  
 Will print to terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
   
-`predict.out {TLE File} {Days to Generate} {Output File}`  
+`predict.out <TLE File> <Timezone Offset> <Days to Generate> [Output File]`  
 Will print to the file passed as {Output File} and to the terminal {Days to Generate} days worth of pass predictions for the object whose TLE is is {TLE File}.
 
 # Licensing
